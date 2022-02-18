@@ -1,0 +1,24 @@
+Balance is an amazingly simple tool for balancing network traffic on a Linux box.
+
+Developer link here:
+https://balance.inlab.net/overview/
+https://balance.inlab.net/download/
+
+Example systemd service running balance
+-------------------------------------------------------------------------
+$ cat /etc/systemd/system/multi-user.target.wants/balance-1666.service
+[Unit]
+Description=Network port 1636 (Balance - Simple TCP Load Balancer)
+After=syslog.target network.target nss-lookup.target
+
+[Service]
+ExecStart=/usr/sbin/balance -f 1666 system1.lcl:1666 system2.lcl:1666
+
+[Install]
+WantedBy=multi-user.target
+
+$ systemctl enable balance-1666
+...
+$ systemctl start balance-1666
+...
+--------------------------------------------------------------------------
