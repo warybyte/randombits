@@ -1,5 +1,4 @@
-Once upon a time I let an IPA certificate expire (actually this has happened SEVERAL times). With older versions of IPA, you can't FORCE the cert, therefore the API can't validate to run any of the commands to update! It was not a good thing.  
-What follows are some of the steps I noted to resolve the issue. 
+# Description: Forcefully update FreeIPA certificate on older versions (ones without the -Force flag)
 
 # Backup everything! 
 mkdir backup_050825 
@@ -13,15 +12,13 @@ cp -r /var/lib/ipa/passwds/ .
 
 # Clear the expired alias from NSSDB 
 
-# List 
+# List cert alias in NSSDB 
 /usr/bin/certutil -d sql:/etc/dirsrv/slapd-YOUR-IPA -L -f /etc/dirsrv/slapd-YOUR-IPA/pwdfile.txt 
 
-# Delete 
+# Delete expired alias
 /usr/bin/certutil -D -n "CN=ipa-s01.your.domain" -d /etc/dirsrv/slapd-YOUR-IPA/ -f /etc/dirsrv/slapd-YOUR-IPA/pwdfile.txt 
 
-Create PK12 version of cert/key combo and import (no password necessary) 
-
-# Generate PK12 version (the name MUST remain exactly the same, or DirServ won't start!) 
+# Generate PK12 version of cert/key combo matching alias name. The name MUST remain exactly the same, or DirServ won't start!
 
 openssl pkcs12 -export -in fullchain.pem -inkey privkey.pem -out ipa.p12 -name "CN=ipa-s01.your.domain" 
 
@@ -45,29 +42,29 @@ chmod 600 /var/lib/ipa/certs/httpd.crt
 # Restart services 
 ipactl restart 
 
-# Run certinstaller to verify everything is squared up (basically you've already done this, but makes sure no steps are missed) 
+# Run certinstaller to verify everything is squared up (basically you've already done this, but makes sure no steps are missed during manual process) 
 ipa-server-certinstall -w --pin='' privkey.pem fullchain.pem 
 
 # Run IPA certupdate to make sure systemwide CA database is good 
 ipa-certupdate 
-Systemwide CA database updated. 
-Systemwide CA database updated. 
-The ipa-certupdate command was successful 
+.. Systemwide CA database updated. 
+.. Systemwide CA database updated. 
+.. The ipa-certupdate command was successful 
 
 # Restart once more 
 ipactl restart 
-Restarting Directory Service 
-Restarting krb5kdc Service 
-Restarting kadmin Service 
-Restarting named Service 
-Restarting httpd Service 
-Restarting ipa-custodia Service 
-Restarting pki-tomcatd Service 
-Restarting smb Service 
-Restarting winbind Service 
-Restarting ipa-otpd Service 
-Restarting ipa-dnskeysyncd Service 
-ipa: INFO: The ipactl command was successful 
+.. Restarting Directory Service 
+.. Restarting krb5kdc Service 
+.. Restarting kadmin Service 
+.. Restarting named Service 
+.. Restarting httpd Service 
+.. Restarting ipa-custodia Service 
+.. Restarting pki-tomcatd Service 
+.. Restarting smb Service 
+.. Restarting winbind Service 
+.. Restarting ipa-otpd Service 
+.. Restarting ipa-dnskeysyncd Service 
+.. ipa: INFO: The ipactl command was successful 
 
 # Log into web portal or test connection using Openssl 
 openssl s_client -connect ipa-s01.domain.name:389 -starttls ldap 
